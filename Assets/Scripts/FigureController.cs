@@ -13,6 +13,7 @@ public class FigureController : MonoBehaviour
 
 
     private bool nextHor;
+
     private float curHorizontalTime = 0f;
     private float directionHor = 0f;
 
@@ -20,6 +21,9 @@ public class FigureController : MonoBehaviour
     private RayController rayController;
 
     public bool isCollided = false;
+    private bool isFalling = true;
+
+    private float downSpeed = 1f;
 
 
     void Start()
@@ -30,32 +34,16 @@ public class FigureController : MonoBehaviour
 
     void Update()
     {
-        if (!isCollided)
+
+
+        if (!isCollided && isFalling)
         {
-            //DownSpeed
             Vector2 curPos = transform.position;
-            curDownTime += Time.deltaTime;
-            if (Input.GetKeyDown(KeyCode.S))
-            {
-                maxDownTime = 0.2f;
-            }
-            if (Input.GetKeyUp(KeyCode.S))
-            {
-                maxDownTime = 0.6f;
-            }
-            if (curDownTime >= maxDownTime && transform.position.y > -3.5)
-            {
-                transform.position = new Vector2(curPos.x, curPos.y - 0.5f);
-                curDownTime = 0f;
-            }
 
-
-
-
-            RaycastHit2D lefthittop = Physics2D.Raycast(new Vector2(transform.position.x -0.5f, transform.position.y + 0.5f), Vector2.left, 1f);
-            RaycastHit2D lefthitbot = Physics2D.Raycast(new Vector2(transform.position.x - 0.5f, transform.position.y - 0.6f), Vector2.left, 1f);
-            RaycastHit2D righthittop = Physics2D.Raycast(new Vector2(transform.position.x + 0.5f, transform.position.y + 0.5f), -Vector2.left, 1f);
-            RaycastHit2D righthitbot = Physics2D.Raycast(new Vector2(transform.position.x + 0.5f, transform.position.y - 0.6f), -Vector2.left, 1f);
+            RaycastHit2D lefthittop = Physics2D.Raycast(new Vector2(transform.position.x -0.5f, transform.position.y + 0.51f), Vector2.left, 1f);
+            RaycastHit2D lefthitbot = Physics2D.Raycast(new Vector2(transform.position.x - 0.5f, transform.position.y - 0.51f), Vector2.left, 1f);
+            RaycastHit2D righthittop = Physics2D.Raycast(new Vector2(transform.position.x + 0.5f, transform.position.y + 0.51f), -Vector2.left, 1f);
+            RaycastHit2D righthitbot = Physics2D.Raycast(new Vector2(transform.position.x + 0.5f, transform.position.y - 0.51f), -Vector2.left, 1f);
 
             // Left/Right Speed
             if (Input.GetKey(KeyCode.A) && transform.position.x > -4f)
@@ -91,6 +79,36 @@ public class FigureController : MonoBehaviour
                 curHorizontalTime = 0f;
             }
         }
+
+        var downRaydownRay = Physics2D.Raycast(new Vector2(transform.position.x, transform.position.y - 0.51f), Vector2.down, 0.48f);
+        if (downRaydownRay.collider == null)
+        {
+            FallingDown();
+        }
+    }
+
+
+    public void FallingDown()
+    {
+        Vector2 curPos = transform.position;
+        curDownTime += Time.deltaTime;
+
+        if (Input.GetKeyDown(KeyCode.S))
+        {
+            downSpeed = 5f;
+        }
+        if (Input.GetKeyUp(KeyCode.S))
+        {
+            downSpeed = 1f;
+        }
+
+        float levelSpeed = 1 + (gameManager.level / 10);
+
+        if (curDownTime >= (maxDownTime / downSpeed / levelSpeed) && transform.position.y > -3.5)
+        {
+            transform.position = new Vector2(curPos.x, curPos.y - 0.5f);
+            curDownTime = 0f;
+        }
     }
 
     public void OnTriggerStay2D(Collider2D collision)
@@ -102,8 +120,20 @@ public class FigureController : MonoBehaviour
                 isCollided = true;
                 rayController.GetRaysToLetters();
                 gameManager.FindDictionaryWords();
-                gameManager.LetterSpawner();
+                if (isFalling)
+                {
+                    gameManager.LetterSpawner();
+                }
+                isFalling = false;
             }
+        }
+    }
+
+    public void OnTriggerExit2D(Collider2D collision)
+    {
+        if (isCollided)
+        {
+            isCollided = false;
         }
     }
 
@@ -111,4 +141,10 @@ public class FigureController : MonoBehaviour
     {
         gameObject.GetComponentInChildren<TMP_Text>().text = letter.ToString();
     }
+
+    public void HiglightFigure()
+    {
+        gameObject.GetComponentInChildren<SpriteRenderer>().color = Color.red;
+    }
+
 }

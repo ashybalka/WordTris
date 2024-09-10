@@ -3,61 +3,70 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 using UnityEngine.Windows;
+using UnityEngine.UIElements;
+using TMPro;
+using UnityEngine.SocialPlatforms.Impl;
 
 public class GameManager : MonoBehaviour
 {
     public bool spawnLetter = true;
+
     [SerializeField] GameObject LetterPrefab, Letters;
-    [SerializeField] TextAsset Dictionary_Main;
-
-    private char[] ruAlphabet = { 'а', 'б', 'в', 'г', 'д', 'е', 'ё', 'ж', 'з', 'и', 'й',
-        'к', 'л', 'м', 'н', 'о', 'п', 'р', 'с', 'т', 'у', 'ф', 'х', 'ц', 'ч', 'ш', 'щ',
-        'ъ', 'ы', 'ь', 'э', 'ю', 'я' };
-
-    public List<string> dictionary = new();
-
+    
+    private LetterFactory letterFactory;
     private RayController rayController;
 
+    public int level = 0;
 
+    [SerializeField] TMP_Text levelText, scoreText , nextLetter;
+
+    private char nextLetterChar;
+
+    private int score = 0;
     void Start()
     {
-        CreateDictionary();
-        LetterSpawner();
         rayController = GameObject.Find("RayCasters").GetComponent<RayController>();
+        letterFactory = GameObject.Find("LetterFactory").GetComponent<LetterFactory>();
+
+        scoreText.text = score.ToString();
+        levelText.text = level.ToString();
+
+        nextLetterChar = letterFactory.GetRandomLetter();
+        nextLetter.text = nextLetterChar.ToString();
+
+        //
+        LetterSpawner();
     }
 
-
-    void Update()
+    private void Update()
     {
-        
+        level = (int)Math.Floor(Time.time / 30);
+        levelText.text = level.ToString();
     }
-
-    public void CreateDictionary()
-    {
-        dictionary = new List<string>(Dictionary_Main.text.Split(new[] { ',', '\n', '\r' }, System.StringSplitOptions.RemoveEmptyEntries));
-
-        for (int i = 0; i < dictionary.Count; i++)
-        {
-            dictionary[i] = dictionary[i].Trim(new[] { '{', '}', '\"', ' ' });
-        }
-    }
-
 
     public void FindDictionaryWords()
     {
         foreach (string wordsLine in rayController.currentGameWords)
         {
-            List<string> TextListWords =  GetSubsequences(wordsLine);
-            foreach (string word in TextListWords)
+            if (letterFactory.WordInDictionary(wordsLine))
             {
-                if (dictionary.Contains(wordsLine))
+                score += wordsLine.Length;
+                scoreText.text = score.ToString();
+                Debug.Log("Найдено слово " + wordsLine + " Длинной " + wordsLine.Length);
+                List<int> positions = rayController.PositionFinder(wordsLine);
+
+                for (int i = 0; i < positions.Count; i += 2)
                 {
-                    Debug.Log("True");
-                    Debug.Log("Найдено слово " + wordsLine);
+                    FigureController highlighFigure = Letters.GetComponentsInChildren<FigureController>()
+                        .Where(n => n.transform.position.x == (positions[i] - 4) 
+                        && n.transform.position.y == (4.5f - positions[i + 1])).First();
+                    highlighFigure.HiglightFigure();
+                    Destroy(highlighFigure.gameObject);
                 }
             }
         }
     }
+
 
 
     static List<string> GetSubsequences(string input)
@@ -80,10 +89,11 @@ public class GameManager : MonoBehaviour
         { 
             GameObject newLetter = Instantiate(LetterPrefab);
             newLetter.transform.position = new Vector2(0f, 6f);
-            char randomLetter = ruAlphabet[UnityEngine.Random.Range(0, ruAlphabet.Length)];
-            newLetter.GetComponent<FigureController>().figureChar = randomLetter;
-            newLetter.GetComponent<FigureController>().SetCharToTMP(randomLetter);
+            newLetter.GetComponent<FigureController>().figureChar = nextLetterChar;
+            newLetter.GetComponent<FigureController>().SetCharToTMP(nextLetterChar);
             newLetter.transform.SetParent(Letters.transform, false);
+            nextLetterChar = letterFactory.GetRandomLetter();
+            nextLetter.text = nextLetterChar.ToString();
         }
     }
 }
