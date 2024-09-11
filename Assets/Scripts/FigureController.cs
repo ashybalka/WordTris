@@ -1,8 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
+using System;
 
 public class FigureController : MonoBehaviour
 {
@@ -101,23 +101,26 @@ public class FigureController : MonoBehaviour
         {
             downSpeed = 1f;
         }
+        
 
         float levelSpeed = 1 + (gameManager.level / 10);
 
         if (curDownTime >= (maxDownTime / downSpeed / levelSpeed) && transform.position.y > -3.5)
         {
-            transform.position = new Vector2(curPos.x, curPos.y - 0.5f);
+            
+            transform.position += new Vector3(0, -1f, 0);
             curDownTime = 0f;
         }
     }
 
-    public void OnTriggerStay2D(Collider2D collision)
+
+    public void OnCollisionStay2D(Collision2D collision)
     {
         if (!isCollided)
         {
             if (collision.gameObject.CompareTag("Floor") || collision.gameObject.CompareTag("Figure"))
             {
-                isCollided = true;
+                isCollided = true;  
                 rayController.GetRaysToLetters();
                 gameManager.FindDictionaryWords();
                 if (isFalling)
@@ -129,7 +132,7 @@ public class FigureController : MonoBehaviour
         }
     }
 
-    public void OnTriggerExit2D(Collider2D collision)
+    public void OnCollisionExit2D(Collision2D collision)
     {
         if (isCollided)
         {

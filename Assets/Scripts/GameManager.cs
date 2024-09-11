@@ -83,12 +83,18 @@ public class GameManager : MonoBehaviour
         return result;
     }
 
+
+
+
+
+
+
     public void LetterSpawner()
     {
         if (spawnLetter)
         { 
             GameObject newLetter = Instantiate(LetterPrefab);
-            newLetter.transform.position = new Vector2(0f, 6f);
+            newLetter.transform.position = new Vector2(0f, 5.5f);
             newLetter.GetComponent<FigureController>().figureChar = nextLetterChar;
             newLetter.GetComponent<FigureController>().SetCharToTMP(nextLetterChar);
             newLetter.transform.SetParent(Letters.transform, false);
