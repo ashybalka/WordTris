@@ -7,23 +7,26 @@ using System;
 public class FigureController : MonoBehaviour
 {
     public char figureChar;
+
     private float maxDownTime = 0.6f;
-    private float maxSideTime = 0.6f;
+    private float maxLeftTime = 0.6f;
+    private float maxRightTime = 0.6f;
+
     private float curDownTime = 0f;
-
-
-    private bool nextHor;
-
-    private float curHorizontalTime = 0f;
-    private float directionHor = 0f;
+    private float curLeftTime = 0f;
+    private float curRightTime = 0f;
 
     private GameManager gameManager;
     private RayController rayController;
 
     public bool isCollided = false;
-    private bool isFalling = true;
+    public bool isFalling = true;
 
     private float downSpeed = 1f;
+    private float leftSpeed = 0f;
+    private float rightSpeed = 0f;
+
+
 
 
     void Start()
@@ -34,80 +37,87 @@ public class FigureController : MonoBehaviour
 
     void Update()
     {
-
-
         if (!isCollided && isFalling)
         {
-            Vector2 curPos = transform.position;
-
-            RaycastHit2D lefthittop = Physics2D.Raycast(new Vector2(transform.position.x -0.5f, transform.position.y + 0.51f), Vector2.left, 1f);
-            RaycastHit2D lefthitbot = Physics2D.Raycast(new Vector2(transform.position.x - 0.5f, transform.position.y - 0.51f), Vector2.left, 1f);
-            RaycastHit2D righthittop = Physics2D.Raycast(new Vector2(transform.position.x + 0.5f, transform.position.y + 0.51f), -Vector2.left, 1f);
-            RaycastHit2D righthitbot = Physics2D.Raycast(new Vector2(transform.position.x + 0.5f, transform.position.y - 0.51f), -Vector2.left, 1f);
-
-            // Left/Right Speed
-            if (Input.GetKey(KeyCode.A) && transform.position.x > -4f)
+            var leftRay = Physics2D.Raycast(new Vector2(transform.position.x - 0.51f, transform.position.y - 0.51f), Vector2.left, 0.48f);
+            if (leftRay.collider == null)
             {
-                if (lefthittop.collider == null && lefthitbot.collider == null)
-                {
-                    directionHor = -1f;
-                    maxSideTime = 0.2f;
-                }                
-            }
-            else if (Input.GetKey(KeyCode.D) && transform.position.x < 4f)
-            {
-
-                if (righthittop.collider == null && righthitbot.collider == null)
-                {
-                    directionHor = 1f;
-                    maxSideTime = 0.2f;
-                }               
-            }
-            else
-            {
-                maxSideTime = 0.6f;
-                directionHor = 0;
+                Moveleft();
             }
 
-            curPos = transform.position;
-            curHorizontalTime += Time.deltaTime;
-
-
-            if (curHorizontalTime >= maxSideTime)
+            var rightRay = Physics2D.Raycast(new Vector2(transform.position.x + 0.51f, transform.position.y - 0.51f), Vector2.right, 0.48f);
+            if (rightRay.collider == null)
             {
-                transform.position = new Vector2(curPos.x + directionHor, curPos.y);
-                curHorizontalTime = 0f;
+                MoveRight();
             }
-        }
+        }    
 
-        var downRaydownRay = Physics2D.Raycast(new Vector2(transform.position.x, transform.position.y - 0.51f), Vector2.down, 0.48f);
-        if (downRaydownRay.collider == null)
+
+
+        var downRay = Physics2D.Raycast(new Vector2(transform.position.x, transform.position.y - 0.51f), Vector2.down, 0.48f);
+        if (downRay.collider == null )
         {
             FallingDown();
         }
     }
 
+    public void Moveleft()
+    {
+        curLeftTime += Time.deltaTime;
+
+        if (Input.GetKey(KeyCode.A))
+        {
+            leftSpeed = 5f;
+        }
+        if (Input.GetKeyUp(KeyCode.A))
+        {
+            leftSpeed = 0f;
+        }
+
+        if (Input.GetKey(KeyCode.A) && curLeftTime >= (maxLeftTime / leftSpeed) && transform.position.x > -4f)
+        {
+            transform.position += new Vector3(-1f, 0, 0);
+            curLeftTime = 0f;
+        }
+    }
+
+    public void MoveRight()
+    {
+        curRightTime += Time.deltaTime;
+
+        if (Input.GetKey(KeyCode.D))
+        {
+            rightSpeed = 5f;
+        }
+        if (Input.GetKeyUp(KeyCode.D))
+        {
+            rightSpeed = 0f;
+        }
+
+        if (Input.GetKey(KeyCode.D) && curRightTime >= (maxRightTime / rightSpeed) && transform.position.x < 4f)
+        {
+            transform.position += new Vector3(1f, 0, 0);
+            curRightTime = 0f;
+        }
+    }
 
     public void FallingDown()
     {
-        Vector2 curPos = transform.position;
         curDownTime += Time.deltaTime;
 
-        if (Input.GetKeyDown(KeyCode.S))
+        if (Input.GetKey(KeyCode.S))
         {
             downSpeed = 5f;
         }
         if (Input.GetKeyUp(KeyCode.S))
         {
             downSpeed = 1f;
-        }
-        
+        }   
 
         float levelSpeed = 1 + (gameManager.level / 10);
 
         if (curDownTime >= (maxDownTime / downSpeed / levelSpeed) && transform.position.y > -3.5)
-        {
-            
+        {  
             transform.position += new Vector3(0, -1f, 0);
             curDownTime = 0f;
         }
@@ -120,12 +130,10 @@ public class FigureController : MonoBehaviour
         {
             if (collision.gameObject.CompareTag("Floor") || collision.gameObject.CompareTag("Figure"))
             {
-                isCollided = true;  
-                rayController.GetRaysToLetters();
-                gameManager.FindDictionaryWords();
+                isCollided = true;
                 if (isFalling)
                 {
-                    gameManager.LetterSpawner();
+                    gameManager.FalingRutine();
                 }
                 isFalling = false;
             }
@@ -144,10 +152,4 @@ public class FigureController : MonoBehaviour
     {
         gameObject.GetComponentInChildren<TMP_Text>().text = letter.ToString();
     }
-
-    public void HiglightFigure()
-    {
-        gameObject.GetComponentInChildren<SpriteRenderer>().color = Color.red;
-    }
-
 }

@@ -169,8 +169,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: "\u0410"
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: dece18badc880174fab1cc080593aba5, type: 2}
+  m_sharedMaterial: {fileID: 3324292739483257339, guid: dece18badc880174fab1cc080593aba5, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -357,6 +357,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   figureChar: 42
   isCollided: 0
+  isFalling: 1
 --- !u!1 &5257193974667577797
 GameObject:
   m_ObjectHideFlags: 0
