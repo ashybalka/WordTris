@@ -30,7 +30,6 @@ public class GameManager : MonoBehaviour
     private int score = 0;
 
     private bool isCorutineRunning = false;
-    private bool isFallingExist = false;
     public bool isGameOver = false;
 
     void Start()
