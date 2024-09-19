@@ -23,12 +23,15 @@ public class GameManager : MonoBehaviour
 
     [SerializeField] ScrollRect scrollRect;
 
+    [SerializeField] GameObject GameOverPanel;
+
     private char nextLetterChar;
 
     private int score = 0;
 
     private bool isCorutineRunning = false;
     private bool isFallingExist = false;
+    public bool isGameOver = false;
 
     void Start()
     {
@@ -71,9 +74,15 @@ public class GameManager : MonoBehaviour
         return falling;
     }
 
+    public void GameOver()
+    {
+        isGameOver = true;
+        GameOverPanel.SetActive(true);
+    }
+
     IEnumerator LineEraser()
     {
-        if (!isCorutineRunning)
+        if (!isCorutineRunning && !isGameOver)
         {
             isCorutineRunning = true;
 

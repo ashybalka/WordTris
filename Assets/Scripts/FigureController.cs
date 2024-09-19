@@ -130,6 +130,11 @@ public class FigureController : MonoBehaviour
         {
             if (collision.gameObject.CompareTag("Floor") || collision.gameObject.CompareTag("Figure"))
             {
+                if (gameObject.transform.position.y > 5)
+                {
+                    gameManager.GameOver();
+                }
+
                 isCollided = true;
                 if (isFalling)
                 {
